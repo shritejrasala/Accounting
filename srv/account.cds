@@ -1,222 +1,98 @@
-using {com.satinfotech.cloudapps as db} from '../db/schema';
+using { com.satinfotech.cloudapps as db } from '../db/schema';
 using { API_OPLACCTGDOCITEMCUBE_SRV as external } from './external/API_OPLACCTGDOCITEMCUBE_SRV';
-service accountsrv{  
-    entity Accounting as projection on db.Accounting{
-         @UI.Hidden: true
-        ID,
-        *
-    };
 
-entity ext as projection on external.A_OperationalAcctgDocItemCube
-};
+service accountsrv {
+  // Define the external service projection
+    entity Accounting as projection on db.Accounting;
+    entity Items as projection on db.Items;
+    entity ext as projection on external.A_OperationalAcctgDocItemCube
+    {
+        CompanyCode,
+        FiscalYear,
+        FiscalPeriod,
+        AccountingDocument,
+        AccountingDocumentItem,
+        AccountingDocumentType,
+        TaxCode,
+        GLAccount,
+         }
+}
+
+
+
+// Enable draft support for the Accounting entity
 annotate accountsrv.Accounting @odata.draft.enabled;
+
+// Annotate the Accounting entity for UI representation
 annotate accountsrv.Accounting with @(
     UI.LineItem: [
+        { Label: 'Company Code', Value: CompanyCode },
+        { Label: 'Fiscal Year', Value: FiscalYear },
+        { Label: 'Fiscal Period', Value: FiscalPeriod },
        
-        {
-            Label: 'CompanyCode',
-            Value: CompanyCode
-        },
-        {
-            Label: 'FiscalYear',
-            Value: FiscalYear
-        },
-        {
-            Label: 'FiscalPeriod',
-            Value: FiscalPeriod
-        },
-        {
-            Label: 'PostingDate',
-            Value: PostingDate
-        },
-         {
-            Label: 'AccountingDocument',
-            Value: AccountingDocument
-        }
-,
-         {
-            Label: 'AccountingDocumentType',
-            Value: AccountingDocumentType
-        },
-        {
-            Label: 'DocumentReferenceID',
-            Value: DocumentReferenceID
-        },
-        
-         {
-            Label: 'CustomerGSTN',
-            Value: CustomerGSTN
-        },
-        {
-            Label: 'SupplierGSTN',
-            Value: SupplierGSTN
-        }
+        { Label: 'Accounting Document', Value: AccountingDocument },
+        { Label: 'Document Type', Value: AccountingDocumentType },
+       
         
     ],
     UI.FieldGroup #account: {
         $Type: 'UI.FieldGroupType',
         Data: [
-            {
-            Label: 'CompanyCode',
-            Value: CompanyCode
-        },
-        {
-            Label: 'FiscalYear',
-            Value: FiscalYear
-        },
-        {
-            Label: 'FiscalPeriod',
-            Value: FiscalPeriod
-        },
-        {
-            Label: 'PostingDate',
-            Value: PostingDate
-        },
-         {
-            Label: 'AccountingDocument',
-            Value: AccountingDocument
-        }
-,
-         {
-            Label: 'AccountingDocumentType',
-            Value: AccountingDocumentType
-        },
-        {
-            Label: 'DocumentReferenceID',
-            Value: DocumentReferenceID
-        },
-         {
-            Label: 'CustomerGSTN',
-            Value: CustomerGSTN
-        },
-        {
-            Label: 'SupplierGSTN',
-            Value: SupplierGSTN
-        }
-        
-
+            { Label: 'Company Code', Value: CompanyCode },
+            { Label: 'Fiscal Year', Value: FiscalYear },
+            { Label: 'Fiscal Period', Value: FiscalPeriod },
+            
+            { Label: 'Accounting Document', Value: AccountingDocument },
+            { Label: 'Document Type', Value: AccountingDocumentType },
+           
+           
         ]
     },
     UI.Facets: [
         {
             $Type: 'UI.ReferenceFacet',
-            ID: 'hospitalFacet',
-            Label: 'hospital Facets',
+            ID: 'accountFacet',
+            Label: 'Account Details',
             Target: '@UI.FieldGroup#account'
         }
-       ,
-        {
-            $Type: 'UI.ReferenceFacet',
-            ID: 'ItemsFacet',
-            Label: 'Items',
-            Target:'Items/@UI.LineItem',
-            
-        }
+      
     ]
 );
+
+// Annotate the Items entity for UI representation
 annotate accountsrv.Items with @(
-    UI.LineItem:[
-      
-   
-        {
-            
-            Label: 'lineno',
-            Value: lineno
-
-        },
-         {
-            Label: 'AccountingDocument',
-            Value:  AccountingDocument
-        },
-        {
-            Label: 'HSN',
-            Value: HSN
-        },
-        {
-            Label: 'GLAccount',
-            Value: GLAccount
-        },
-        {
-            Label: 'DocumentText',
-            Value: DocumentText
-        },
-        {
-            Label: 'GSTkey',
-            Value: GSTkey
-        },
-        {
-            Label: 'POS',
-            Value: POS
-        },
-        {
-            Label: 'TaxCode',
-            Value: TaxCode
-        },
-        {
-            Label: 'TaxItemAccDoc',
-            Value: TaxItemAccDoc
-        },
-        {
-            Label: 'AccountingDocumentID',
-            Value: AccountingDocumentID
-        },
-    ],
-    UI.FieldGroup #Items : {
-        $Type : 'UI.FieldGroupType',
-        Data : [
-           
-        {
-            
-            Label: 'lineno',
-            Value: lineno
-
-        },
-         {
-            Label: 'AccountingDocument',
-            Value:  AccountingDocument
-        },
-        {
-            Label: 'HSN',
-            Value: HSN
-        },
-        {
-            Label: 'GLAccount',
-            Value: GLAccount
-        },
-        {
-            Label: 'DocumentText',
-            Value: DocumentText
-        },
-        {
-            Label: 'GSTkey',
-            Value: GSTkey
-        },
-        {
-            Label: 'POS',
-            Value: POS
-        },
-        {
-            Label: 'TaxCode',
-            Value: TaxCode
-        },
-        {
-            Label: 'TaxItemAccDoc',
-            Value: TaxItemAccDoc
-        },
-        {
-            Label: 'AccountingDocumentID',
-            Value: AccountingDocumentID
-        },
-         
+    UI.LineItem: [
+        
+        { Label: 'Accounting Document', Value: AccountingDocument },
        
-        ],
-    },
-    UI.Facets : [
-        {
-            $Type : 'UI.ReferenceFacet',
-            ID : 'DoctorFacet',
-            Label : 'Doctors',
-            Target : '@UI.FieldGroup#Items',
-        },
+        { Label: 'GL Account', Value: GLAccount },
+      
+      
+      
+        { Label: 'Tax Code', Value: TaxCode },
+       
+        
     ],
+    UI.FieldGroup #items: {
+        $Type: 'UI.FieldGroupType',
+        Data: [
+           
+            { Label: 'Accounting Document', Value: AccountingDocument },
+            
+            { Label: 'GL Account', Value: GLAccount },
+           
+         
+          
+            { Label: 'Tax Code', Value: TaxCode },
+           
+        ]
+    },
+    UI.Facets: [
+        {
+            $Type: 'UI.ReferenceFacet',
+            ID: 'itemsFacet',
+            Label: 'Items Details',
+            Target: '@UI.FieldGroup#items'
+        }
+    ]
 );

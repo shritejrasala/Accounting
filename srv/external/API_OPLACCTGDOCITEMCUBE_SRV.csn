@@ -14,7 +14,7 @@
   "API_OPLACCTGDOCITEMCUBE_SRV.A_OperationalAcctgDocItemCube": {
    "kind": "entity",
    "@cds.external": true,
-   "@cds.persistence.skip": true,
+   "@cds.persistence.skip": false,
    "@sap.creatable": "false",
    "@sap.updatable": "false",
    "@sap.deletable": "false",
