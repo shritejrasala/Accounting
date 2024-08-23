@@ -1,4 +1,4 @@
-namespace com.satinfotech.cloudapps;
+namespace com.teju.cloudapps;
 
 using { cuid, managed } from '@sap/cds/common';
 
@@ -20,6 +20,10 @@ entity Accounting : cuid, managed {
 
     @title: 'AccountingDocumentType'
     AccountingDocumentType : String(15);
+   
+    @title: 'Lastchange'
+    LastChangeDate: DateTime;
+    
 
     // Define the composition relationship with Items
     Items : Composition of many Items on Items.AccountingDocument = $self.AccountingDocument;
@@ -41,4 +45,5 @@ entity Items : cuid, managed {
 
     @title: 'TaxCode'
     TaxCode : String(50);
+
 }

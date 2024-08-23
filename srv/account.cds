@@ -1,10 +1,12 @@
-using { com.satinfotech.cloudapps as db } from '../db/schema';
+using { com.teju.cloudapps as db } from '../db/schema';
 using { API_OPLACCTGDOCITEMCUBE_SRV as external } from './external/API_OPLACCTGDOCITEMCUBE_SRV';
 
 service accountsrv {
   // Define the external service projection
   entity Accounting as projection on db.Accounting;
   entity Items as projection on db.Items;
+  action fetch () returns Boolean;
+  // Projection on the external service entity
   entity ext as projection on external.A_OperationalAcctgDocItemCube
   {
     CompanyCode,
@@ -14,8 +16,12 @@ service accountsrv {
     AccountingDocumentItem,
     AccountingDocumentType,
     TaxCode,
-    GLAccount
+    GLAccount,
+    LastChangeDate
   }
+
+  // Define the action to load data
+    
 }
 
 // Enable draft support for the Accounting entity

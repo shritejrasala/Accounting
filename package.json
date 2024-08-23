@@ -22,7 +22,8 @@
     "eslint": "^9"
   },
   "scripts": {
-    "start": "cds-serve"
+    "start": "cds-serve",
+    "watch-fetch": "cds watch --open fetch/webapp/index.html?sap-ui-xx-viewCache=false"
   },
   "cds": {
     "requires": {
@@ -35,5 +36,8 @@
         "model": "srv/external/API_OPLACCTGDOCITEMCUBE_SRV"
       }
     }
-  }
+  },
+  "sapux": [
+    "app/fetch"
+  ]
 }
