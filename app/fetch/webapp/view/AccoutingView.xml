@@ -1,0 +1,27 @@
+<mvc:View
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    controllerName="com.teju.cloudapps.controller.AccountingController">
+    
+    <Dialog
+        id="accountingDialog"
+        title="Accounting Records"
+        afterClose="onDialogClose">
+        <VBox>
+            <List
+                id="accountingList"
+                items="{/accountingRecords}">
+                <StandardListItem
+                    title="{AccountingDocument}"
+                    description="{GLAccount}">
+                </StandardListItem>
+            </List>
+            <Toolbar>
+                <ToolbarSpacer />
+                <Button
+                    text="Close"
+                    press="onDialogClose" />
+            </Toolbar>
+        </VBox>
+    </Dialog>
+</mvc:View>

@@ -2,7 +2,6 @@ const cds = require('@sap/cds');
 const { v4: uuidv4 } = require('uuid');
 
 module.exports = cds.service.impl(async function () {
-    // Define the fetch action
     this.on('fetch', async (req) => {
         try {
             const Accountingapi = await cds.connect.to('API_OPLACCTGDOCITEMCUBE_SRV');
@@ -18,7 +17,7 @@ module.exports = cds.service.impl(async function () {
 
             if (!Array.isArray(res)) {
                 console.error('Unexpected data format for fetch action:', res);
-                return { message: 'No records found.' };
+                return { message: 'No records found.', totalRecords: 0 };
             }
 
             // Process Accounting records
@@ -32,7 +31,6 @@ module.exports = cds.service.impl(async function () {
             });
 
             const groupedData = Array.from(groupMap.values());
-            //console.log('Grouped records for fetch action:', groupedData);
 
             // Insert or update Accounting records
             const existingRecords = await cds.run(
@@ -110,9 +108,10 @@ module.exports = cds.service.impl(async function () {
                     path: 'A_OperationalAcctgDocItemCube/$count'
                 });
             }
+
             function convertSAPDateToISO(dateString) {
-                const timestamp = parseInt(dateString.match(/\d+/)[0], 10); // Extract the timestamp
-                return new Date(timestamp).toISOString(); // Convert to ISO string
+                const timestamp = parseInt(dateString.match(/\d+/)[0], 10);
+                return new Date(timestamp).toISOString();
             }
             
             function removeDuplicateEntries(results) {
@@ -129,6 +128,8 @@ module.exports = cds.service.impl(async function () {
                 return uniqueResults;
             }
             
+            let processedRecords = 0;
+
             for (let i = 0; i < counttaxdocs; i += 5000) {
                 const taxdocitemsQuery = {
                     method: 'GET',
@@ -138,25 +139,23 @@ module.exports = cds.service.impl(async function () {
                 let results = await Accountingapi.send(taxdocitemsQuery);
             
                 results = results.map(item => {
-                    // Ensure LastChangeDate is in ISO format
                     if (item.LastChangeDate) {
                         item.LastChangeDate = convertSAPDateToISO(item.LastChangeDate);
                     }
             
-                    // Ensure ID is not null
                     if (!item.ID) {
-                        item.ID = generateUniqueID(item); // Optionally generate a unique ID if missing
+                        item.ID = generateUniqueID(item);
                     }
             
                     return item;
                 });
             
-                // Remove duplicate entries
                 results = removeDuplicateEntries(results);
             
-                if (results.length > 0) { // Only attempt UPSERT if there are valid records
+                if (results.length > 0) {
                     console.log("In Batch ", i, " of ", counttaxdocs, " records");
                     await cds.run(UPSERT.into(Accounting).entries(results));
+                    processedRecords += results.length;
                 } else {
                     console.log("Skipping Batch ", i, " due to missing or duplicate IDs");
                 }
@@ -168,14 +167,14 @@ module.exports = cds.service.impl(async function () {
 
             console.log('Count of new tax documents:', counttaxdocs);
 
-            // Fetch and process GST tax items if needed
-            // ...
-
-            return { message: 'Fetch action completed successfully.' };
+            return { 
+                message: 'Fetch action completed successfully.', 
+                totalRecords: counttaxdocs,
+                processedRecords 
+            };
         } catch (error) {
             console.error('Error in fetch action:', error);
             throw error;
         }
     });
-
 });
