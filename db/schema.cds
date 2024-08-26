@@ -33,17 +33,19 @@ entity Accounting : cuid, managed {
 // Define the Items entity
 entity Items : cuid, managed {
     key ID : UUID;
-
-    // Association to Accounting
-    //Accounting: Association to Accounting;
-
+    @title : 'CompanyCode'
+    CompanyCode: String(10);
+    @title: 'FiscalYear'
+    FiscalYear: String(4);
     @title: 'AccountingDocument'
-    AccountingDocument : String(50);
-
-    @title: 'GLAccount'
-    GLAccount : String(50);
-
-    @title: 'TaxCode'
-    TaxCode : String(50);
+    AccountingDocument: String(10);
+    @title: 'Accounting Document Item'
+    AccountingDocumentItem: String(4);
+    @title: 'GL Account'
+    GLAccount: String(10);
+    @title: 'Tax Code'
+    TaxCode: String(5);
+    @title: 'GST Amount in INR'
+    AmountInTransactionCurrency : Decimal(15,2);
 
 }

@@ -5,7 +5,8 @@ service accountsrv {
   // Define the external service projection
   entity Accounting as projection on db.Accounting;
   entity Items as projection on db.Items;
-  action fetch () returns Boolean;
+  action fetch () returns String;
+  action Status() returns String;
   // Projection on the external service entity
   entity ext as projection on external.A_OperationalAcctgDocItemCube
   {
@@ -19,9 +20,6 @@ service accountsrv {
     GLAccount,
     LastChangeDate
   }
-
-  // Define the action to load data
-    
 }
 
 // Enable draft support for the Accounting entity
@@ -65,24 +63,32 @@ annotate accountsrv.Accounting with @(
 // Annotate the Items entity for UI representation
 annotate accountsrv.Items with @(
   UI.LineItem: [
-    { Label: 'Accounting Document', Value: AccountingDocument },
-    { Label: 'GL Account', Value: GLAccount },
-    { Label: 'Tax Code', Value: TaxCode }
-  ],
-  UI.FieldGroup #items: {
-    $Type: 'UI.FieldGroupType',
-    Data: [
-      { Label: 'Accounting Document', Value: AccountingDocument },
-      { Label: 'GL Account', Value: GLAccount },
-      { Label: 'Tax Code', Value: TaxCode }
-    ]
-  },
+            { Label: 'Company Code', Value: CompanyCode },
+            { Label: 'Fiscal Year', Value: FiscalYear },
+            { Label: 'Accounting Document', Value: AccountingDocument },
+            { Label: 'Accounting Document Item', Value: AccountingDocumentItem },
+            { Label: 'GL Account', Value: GLAccount },
+            { Label: 'Tax Code', Value: TaxCode },
+            { Label: 'GST Amount in INR', Value: AmountInTransactionCurrency }
+    ],
+    UI.FieldGroup #Items : {
+        $Type : 'UI.FieldGroupType',
+        Data : [
+            { Label: 'Company Code', Value: CompanyCode },
+            { Label: 'Fiscal Year', Value: FiscalYear },
+            { Label: 'Accounting Document', Value: AccountingDocument },
+            { Label: 'Accounting Document Item', Value: AccountingDocumentItem },
+            { Label: 'GL Account', Value: GLAccount },
+            { Label: 'Tax Code', Value: TaxCode },
+            { Label: 'GST Amount in INR', Value: AmountInTransactionCurrency }
+        ]
+    },
   UI.Facets: [
     {
       $Type: 'UI.ReferenceFacet',
       ID: 'doc_items_facet',
       Label: 'Document Items',
-      Target: '@UI.FieldGroup#items'
+      Target: '@UI.FieldGroup#Items'
     }
   ]
 );

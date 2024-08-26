@@ -1,83 +1,85 @@
+
 sap.ui.define([
     "sap/m/MessageBox",
-    "sap/ui/core/library",
-    'sap/ui/core/BusyIndicator',
-    "sap/m/MessageToast",
     "sap/m/Dialog",
     "sap/m/Text",
     "sap/m/Button"
-], function (MessageBox, coreLibrary, BusyIndicator, MessageToast, Dialog, Text, Button) {
+], function (MessageBox, Dialog, Text, Button) {
     "use strict";
-    
     return {
         fetch: function (oBindingContext, aSelectedContexts) {
-            const batchSize = 5000; // Number of records per batch
-            let processedRecords = 0;
-            let totalRecords = 0; // Initialize total records to zero
+            var messageTimeout;
 
-            // Create and open the dialog
-            let oDialog = new Dialog({
-                title: "Fetching Records",
-                content: [
-                    new Text({ id: "progressText", text: `Fetching: 0/0` })
-                ],
+            var oStatusText = new Text({ text: "Starting to fetch documents..." });
+
+            var oDialog = new Dialog({
+                title: "Fetching Details",
+                content: [oStatusText],
                 beginButton: new Button({
-                    text: "Close",
+                    text: "Cancel",
                     press: function () {
                         oDialog.close();
+                        clearTimeout(messageTimeout);
                     }
-                }),
-                afterClose: function () {
-                    oDialog.destroy();
-                }
+                })
             });
-            oDialog.open();
-            
-            function fetchBatch(skip) {
-                // Make AJAX call to fetch the batch
-                $.ajax({
-                    url: "/odata/v4/accountsrv/fetch", // Ensure this URL is correct
-                    type: "POST",
-                    contentType: "application/json",
-                    data: JSON.stringify({
-                        context: oBindingContext,
-                        selectedContexts: aSelectedContexts,
-                        $skip: skip,
-                        $top: batchSize
-                    }),
-                    success: function (data) {
-                        const fetchedCount = data.value.records ? data.value.records.length : 0;
-                        if (totalRecords === 0 && data.value.totalRecords) {
-                            totalRecords = data.value.totalRecords;
-                        }
-                        processedRecords += fetchedCount;
-                        
-                        // Update the progress text in the dialog
-                        sap.ui.getCore().byId("progressText").setText(`Fetching: ${processedRecords}/${totalRecords}`);
 
-                        if (fetchedCount >= batchSize && processedRecords < totalRecords) {
-                            // Fetch the next batch
-                            fetchBatch(processedRecords);
-                        } else {
-                            // All records processed
-                            MessageToast.show("All records have been processed.");
-                            oDialog.close();
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        console.error("Error executing action:", error);
-                        MessageBox.error("Failed to execute action.");
-                        oDialog.close();
-                    },
-                    complete: function () {
-                        BusyIndicator.hide();
-                    }
-                });
+            oDialog.open();
+
+            function updateStatus(message, closeDialog = false) {
+                oStatusText.setText(message);
+                if (messageTimeout) clearTimeout(messageTimeout);
+
+                if (closeDialog) {
+                    oDialog.close();
+                    MessageBox.success("Fetching Successfully");
+                } else {
+                    messageTimeout = setTimeout(() => oStatusText.setText(""), 10000);
+                }
             }
 
-            // Start fetching records with the first batch
-            BusyIndicator.show(0);
-            fetchBatch(0);
+            function handleStatusResponse(statusResponse) {
+                if (statusResponse && typeof statusResponse === 'object' && statusResponse.value) {
+                    const messages = statusResponse.value.messages || [];
+                    const totalRecords = statusResponse.value.totalRecords || 0; // Assuming `totalRecords` is part of the response
+                    updateStatus(`Total Records: ${totalRecords}`);
+
+                    messages.forEach((msg, i) => {
+                        setTimeout(() => {
+                            if (msg === "Fetching completed successfully") {
+                                updateStatus(msg, true);
+                            } else {
+                                updateStatus(msg);
+                            }
+                        }, i * 5000);
+                    });
+                } else {
+                    updateStatus("Unexpected status response format.", true);
+                }
+            }
+
+            $.ajax({
+                url: "/odata/v4/accountsrv/fetch",
+                type: "POST",
+                contentType: "application/json",
+                success: function () {
+                    // Poll only once after 5 seconds
+                    setTimeout(() => {
+                        $.ajax({
+                            url: "/odata/v4/accountsrv/Status",
+                            type: "POST",
+                            contentType: "application/json",
+                            success: handleStatusResponse,
+                            error: function () {
+                                updateStatus("Error during polling.", true);
+                            }
+                        });
+                    }, 5000);
+                },
+                error: function () {
+                    updateStatus("Error starting the fetch operation.", true);
+                }
+            });
         }
     };
 });
